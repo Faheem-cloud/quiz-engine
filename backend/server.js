@@ -139,32 +139,32 @@ app.get("/check-completion/:vtuno", (req, res) => {
 // =============================
 app.get("/admin/results", (req, res) => {
 
-    const query = `
-    SELECT 
-    users.name,
-    users.vtuno,
-    scores.html_score,
-    scores.css_score,
-    scores.js_score,
-    (IFNULL(scores.html_score,0) + IFNULL(scores.css_score,0) + IFNULL(scores.js_score,0)) AS total,
-    scores.created_at
-    FROM users
-    LEFT JOIN scores ON users.id = scores.user_id
-    ORDER BY users.id DESC
-    `;
+const query = `
+SELECT 
+users.name,
+users.vtuno,
+scores.html_score,
+scores.css_score,
+scores.js_score,
+(IFNULL(scores.html_score,0) + IFNULL(scores.css_score,0) + IFNULL(scores.js_score,0)) AS total,
+scores.created_at
+FROM users
+LEFT JOIN scores ON users.id = scores.user_id
+ORDER BY users.id DESC
+`;
 
-    db.query(query, (err, results) => {
+db.query(query, (err, results) => {
 
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: "Fetch failed" });
-        }
+if (err) {
+console.log("SQL ERROR:", err);
+return res.status(500).json({ message: "Fetch failed" });
+}
 
-        res.json(results);
-    });
+res.json(results);
 
 });
 
+});
 
 // =============================
 // Admin: Download Excel
