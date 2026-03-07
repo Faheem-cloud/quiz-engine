@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Quiz Time 🚀</h1>
+
+    <!-- Module Name -->
+    <h3 id="moduleTitle"></h3>
+
+    <!-- Timer -->
+    <div class="timer" id="timer">Time Left: 320s</div>
+
+    <!-- Question -->
+    <h2 id="question"></h2>
+
+    <!-- Options -->
+    <div id="options"></div>
+
+    <!-- Next Button -->
+    <button onclick="nextQuestion()">Next</button>
+
+</div>
+
+
+<script src="question.js"></script>
+<script src="quiz.js"></script>
+
+<script>
+
+// Show current module name
+let lang = localStorage.getItem("language")
+
+let moduleTitle = document.getElementById("moduleTitle")
+
+if(lang === "html"){
+moduleTitle.innerText = "Module 1 : HTML Quiz"
+}
+
+else if(lang === "css"){
+moduleTitle.innerText = "Module 2 : CSS Quiz"
+}
+
+else if(lang === "javascript"){
+moduleTitle.innerText = "Module 3 : JavaScript Quiz"
+}
+
+</script>
+
+</body>
+</html>

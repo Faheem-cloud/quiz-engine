@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Result</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Quiz Result</h1>
+
+<p><strong>Name:</strong> <span id="name"></span></p>
+
+<p><strong>VTU Number:</strong> <span id="vtuno"></span></p>
+
+<hr>
+
+<p>HTML Score : <span id="html"></span> / 10</p>
+
+<p>CSS Score : <span id="css"></span> / 10</p>
+
+<p>JavaScript Score : <span id="js"></span> / 10</p>
+
+<h2>Total Score : <span id="total"></span> / 30</h2>
+
+<!-- Pass / Fail message -->
+<h3 id="resultMessage"></h3>
+
+<div style="margin-top:20px;">
+
+<!-- Certificate / Try Again button -->
+<button id="actionBtn" onclick="downloadCertificate()">Download Certificate</button>
+
+<!-- Home button -->
+<button onclick="goHome()">Home</button>
+
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="result.js"></script>
+
+<script>
+function goHome(){
+window.location.href = "course.html";
+}
+</script>
+
+</body>
+</html>

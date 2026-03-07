@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Select Course</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Fullstack with Java</h1>
+
+<p id="statusText">Checking status...</p><br>
+
+<button id="startBtn" onclick="startQuiz()">Start Quiz</button>
+
+<div class="course-info">
+
+<p>
+This course contains <strong>3 modules</strong> designed to test your knowledge in
+<strong>HTML, CSS, and JavaScript</strong>.
+</p>
+
+<p>
+Each module contains <strong>10 questions</strong>.  
+You must score at least <strong>15 out of 30</strong> to successfully complete the quiz.
+</p>
+
+</div>
+
+<div id="extraSection" class="action-box"></div>
+
+</div>
+
+
+<script>
+
+// Get VTU number
+let vtuno = localStorage.getItem("vtuno")
+
+let statusText = document.getElementById("statusText")
+let startBtn = document.getElementById("startBtn")
+let extraSection = document.getElementById("extraSection")
+
+
+// Check completion from database
+fetch("http://localhost:5000/check-completion/" + vtuno)
+
+.then(res => res.json())
+
+.then(data => {
+
+if(data.completed){
+
+statusText.innerHTML = "Status : Completed ✅"
+
+startBtn.style.display = "none"
+
+extraSection.innerHTML = `
+<p>You have already completed this course.</p>
+
+<button onclick="goToResult()">Download Certificate</button>
+<button onclick="goBack()">Back</button>
+`
+
+}else{
+
+statusText.innerHTML = "Status : Not Attempted"
+
+extraSection.innerHTML = `
+<p>Click <strong>Start Quiz</strong> to begin the assessment.</p>
+<p>The quiz will test your knowledge of HTML, CSS, and JavaScript.</p>
+`
+
+}
+
+})
+
+.catch(err=>{
+console.log(err)
+statusText.innerHTML = "Error checking quiz status"
+})
+
+
+// Start Quiz
+function startQuiz(){
+
+localStorage.setItem("language","html")
+
+localStorage.removeItem("html_score")
+localStorage.removeItem("css_score")
+localStorage.removeItem("javascript_score")
+
+window.location.href = "quiz.html"
+
+}
+
+
+// Go to result page
+function goToResult(){
+window.location.href = "result.html"
+}
+
+
+// Back button
+function goBack(){
+window.location.href = "index.html"
+}
+
+</script>
+
+</body>
+</html>

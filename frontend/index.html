@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Engine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+      <img src="images/study.png" class="hero-img" alt="Study Illustration">
+
+    <h1>Automated Quiz Engine</h1>
+
+    <input type="text" id="username" placeholder="Enter Your Name">
+
+    <input type="text" id="vtuno" placeholder="Enter Your VTU Number">
+
+    <button onclick="startQuiz()">Start Quiz</button>
+
+</div>
+
+<script>
+
+function startQuiz(){
+
+    let name = document.getElementById("username").value.trim()
+    let vtuno = document.getElementById("vtuno").value.trim()
+
+    if(name === "" || vtuno === ""){
+        alert("Please enter Name and VTU Number")
+        return
+    }
+
+    localStorage.setItem("username", name)
+    localStorage.setItem("vtuno", vtuno)
+
+    window.location.href = "course.html"
+
+}
+
+</script>
+
+</body>
+</html>
