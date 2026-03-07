@@ -31,7 +31,10 @@ app.post("/submit-quiz", (req, res) => {
     // Check if user exists
     db.query("SELECT id FROM users WHERE vtuno = ?", [vtuno], (err, userResult) => {
 
-        if (err) return res.status(500).json({ message: "User lookup failed" });
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "User lookup failed" });
+        }
 
         if (userResult.length > 0) {
 
@@ -45,7 +48,10 @@ app.post("/submit-quiz", (req, res) => {
                 [name, vtuno],
                 (err, result) => {
 
-                    if (err) return res.status(500).json({ message: "User insert failed" });
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).json({ message: "User insert failed" });
+                    }
 
                     const userId = result.insertId;
                     checkScore(userId);
@@ -62,6 +68,11 @@ app.post("/submit-quiz", (req, res) => {
             "SELECT id FROM scores WHERE user_id = ?",
             [userId],
             (err, scoreResult) => {
+
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ message: "Score lookup failed" });
+                }
 
                 if (scoreResult.length > 0) {
                     return res.json({ message: "Result already saved" });
@@ -82,7 +93,10 @@ app.post("/submit-quiz", (req, res) => {
             [userId, html, css, javascript],
             (err) => {
 
-                if (err) return res.status(500).json({ message: "Score insert failed" });
+                if (err) {
+                    console.error(err);
+                    return res.status(500).json({ message: "Score insert failed" });
+                }
 
                 res.json({ success: true });
             }
@@ -102,14 +116,17 @@ app.get("/check-completion/:vtuno", (req, res) => {
     const query = `
     SELECT scores.id
     FROM users
-    JOIN scores ON users.id = scores.user_id
+    LEFT JOIN scores ON users.id = scores.user_id
     WHERE users.vtuno = ?
     LIMIT 1
     `;
 
     db.query(query, [vtuno], (err, result) => {
 
-        if (err) return res.status(500).json({ completed: false });
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ completed: false });
+        }
 
         res.json({ completed: result.length > 0 });
     });
@@ -129,16 +146,19 @@ app.get("/admin/results", (req, res) => {
     scores.html_score,
     scores.css_score,
     scores.js_score,
-    (scores.html_score + scores.css_score + scores.js_score) AS total,
+    (IFNULL(scores.html_score,0) + IFNULL(scores.css_score,0) + IFNULL(scores.js_score,0)) AS total,
     scores.created_at
     FROM users
-    JOIN scores ON users.id = scores.user_id
-    ORDER BY scores.id DESC
+    LEFT JOIN scores ON users.id = scores.user_id
+    ORDER BY users.id DESC
     `;
 
     db.query(query, (err, results) => {
 
-        if (err) return res.status(500).json({ message: "Fetch failed" });
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Fetch failed" });
+        }
 
         res.json(results);
     });
@@ -171,15 +191,18 @@ app.get("/admin/download-excel", async (req, res) => {
     scores.html_score,
     scores.css_score,
     scores.js_score,
-    (scores.html_score + scores.css_score + scores.js_score) AS total,
+    (IFNULL(scores.html_score,0) + IFNULL(scores.css_score,0) + IFNULL(scores.js_score,0)) AS total,
     scores.created_at
     FROM users
-    JOIN scores ON users.id = scores.user_id
+    LEFT JOIN scores ON users.id = scores.user_id
     `;
 
     db.query(query, async (err, rows) => {
 
-        if (err) return res.status(500).json({ message: "Excel export failed" });
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Excel export failed" });
+        }
 
         rows.forEach(row => worksheet.addRow(row));
 
@@ -203,6 +226,9 @@ app.get("/admin/download-excel", async (req, res) => {
 // =============================
 // Start Server
 // =============================
-app.listen(5000, () => {
-    console.log("🚀 Server running at http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });
+
