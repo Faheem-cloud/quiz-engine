@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,15 +13,14 @@
 <h1>Admin Dashboard</h1>
 
 <div class="btn-group">
-
 <button onclick="downloadExcel()">Download Excel</button>
-
 </div>
+
+<p id="status">Loading results...</p>
 
 <table id="resultTable">
 
 <thead>
-
 <tr>
 <th>Name</th>
 <th>VTU Number</th>
@@ -30,21 +30,23 @@
 <th>Total Score</th>
 <th>Date</th>
 </tr>
-
 </thead>
 
-<tbody>
-
-</tbody>
+<tbody></tbody>
 
 </table>
 
 </div>
 
+
 <script>
 
-// Fetch results from backend
-fetch("https://quiz-engine-mt13.onrender.com/admin/results")
+const API = "https://quiz-engine-mt13.onrender.com"
+
+let status = document.getElementById("status")
+
+// Fetch results
+fetch(API + "/admin/results")
 
 .then(res => res.json())
 
@@ -54,18 +56,28 @@ let table = document.querySelector("#resultTable tbody")
 
 table.innerHTML = ""
 
+if(!data || data.length === 0){
+
+status.innerText = "No results found"
+
+return
+
+}
+
+status.innerText = ""
+
 data.forEach(student => {
 
 let row = document.createElement("tr")
 
 row.innerHTML = `
-<td>${student.name}</td>
-<td>${student.vtuno}</td>
-<td>${student.html_score}</td>
-<td>${student.css_score}</td>
-<td>${student.js_score}</td>
-<td>${student.total}</td>
-<td>${new Date(student.created_at).toLocaleString()}</td>
+<td>${student.name || "-"}</td>
+<td>${student.vtuno || "-"}</td>
+<td>${student.html_score ?? 0}</td>
+<td>${student.css_score ?? 0}</td>
+<td>${student.js_score ?? 0}</td>
+<td>${student.total ?? 0}</td>
+<td>${student.created_at ? new Date(student.created_at).toLocaleString() : "-"}</td>
 `
 
 table.appendChild(row)
@@ -76,7 +88,9 @@ table.appendChild(row)
 
 .catch(err => {
 
-console.log("Error loading results:", err)
+console.error(err)
+
+status.innerText = "Error loading results"
 
 })
 
@@ -84,8 +98,7 @@ console.log("Error loading results:", err)
 // Download Excel
 function downloadExcel(){
 
-window.location.href =
-"https://quiz-engine-mt13.onrender.com/admin/download-excel"
+window.location.href = API + "/admin/download-excel"
 
 }
 
@@ -93,4 +106,6 @@ window.location.href =
 
 </body>
 </html>
+
+
 
