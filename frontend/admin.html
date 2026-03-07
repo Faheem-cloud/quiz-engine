@@ -22,7 +22,6 @@
 <thead>
 
 <tr>
-
 <th>Name</th>
 <th>VTU Number</th>
 <th>HTML</th>
@@ -30,7 +29,6 @@
 <th>JavaScript</th>
 <th>Total Score</th>
 <th>Date</th>
-
 </tr>
 
 </thead>
@@ -45,7 +43,8 @@
 
 <script>
 
-fetch("http://localhost:5000/admin/results")
+// Fetch results from backend
+fetch("https://quiz-engine-mt13.onrender.com/admin/results")
 
 .then(res => res.json())
 
@@ -60,15 +59,13 @@ data.forEach(student => {
 let row = document.createElement("tr")
 
 row.innerHTML = `
-
 <td>${student.name}</td>
 <td>${student.vtuno}</td>
 <td>${student.html_score}</td>
 <td>${student.css_score}</td>
 <td>${student.js_score}</td>
 <td>${student.total}</td>
-<td>${student.created_at}</td>
-
+<td>${new Date(student.created_at).toLocaleString()}</td>
 `
 
 table.appendChild(row)
@@ -77,9 +74,18 @@ table.appendChild(row)
 
 })
 
+.catch(err => {
+
+console.log("Error loading results:", err)
+
+})
+
+
+// Download Excel
 function downloadExcel(){
 
-window.location.href = "http://localhost:5000/admin/download-excel"
+window.location.href =
+"https://quiz-engine-mt13.onrender.com/admin/download-excel"
 
 }
 
@@ -87,3 +93,4 @@ window.location.href = "http://localhost:5000/admin/download-excel"
 
 </body>
 </html>
+

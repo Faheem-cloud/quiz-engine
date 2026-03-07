@@ -1,9 +1,9 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
 <title>Select Course</title>
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -45,8 +45,15 @@ let startBtn = document.getElementById("startBtn")
 let extraSection = document.getElementById("extraSection")
 
 
+// If VTU not found
+if(!vtuno){
+statusText.innerHTML = "Please enter VTU number first"
+startBtn.style.display = "none"
+}
+
+
 // Check completion from database
-fetch("http://localhost:5000/check-completion/" + vtuno)
+fetch("https://quiz-engine-mt13.onrender.com/check-completion/" + vtuno)
 
 .then(res => res.json())
 
@@ -79,8 +86,11 @@ extraSection.innerHTML = `
 })
 
 .catch(err=>{
+
 console.log(err)
+
 statusText.innerHTML = "Error checking quiz status"
+
 })
 
 
@@ -113,3 +123,4 @@ window.location.href = "index.html"
 
 </body>
 </html>
+```

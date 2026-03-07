@@ -1,3 +1,4 @@
+
 // ===== Get Student Details =====
 
 let name = localStorage.getItem("username")
@@ -56,7 +57,7 @@ let saved = sessionStorage.getItem("result_saved")
 
 if(!saved){
 
-fetch("http://localhost:5000/submit-quiz", {
+fetch("https://quiz-engine-mt13.onrender.com/submit-quiz", {
 
 method: "POST",
 
@@ -142,7 +143,7 @@ doc.setFontSize(30)
 doc.text(name.toUpperCase(),pageWidth/2,100,{align:"center"})
 
 
-// VTU
+// VTU Number
 doc.setFontSize(16)
 doc.setTextColor(255,255,255)
 doc.text("VTU Number : " + vtuno,pageWidth/2,115,{align:"center"})
@@ -177,5 +178,8 @@ doc.save(name + "_certificate.pdf")
 // ===== Home Button =====
 
 function goHome(){
+
 window.location.href = "index.html"
+
 }
+
