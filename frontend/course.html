@@ -63,6 +63,8 @@ fetch("https://quiz-engine-mt13.onrender.com/check-completion/" + vtuno)
 
 .then(data => {
 
+let total = data.total || 0
+
 
 // ===== PASSED =====
 
@@ -85,7 +87,7 @@ extraSection.innerHTML = `
 
 // ===== FAILED =====
 
-else if(data.total > 0){
+else if(total > 0 && total < 15){
 
 statusText.innerHTML = "Status : Failed ❌"
 

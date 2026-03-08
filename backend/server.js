@@ -1,263 +1,195 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const db = require("./db");
-const ExcelJS = require("exceljs");
+// ===== Get Student Details =====
 
-const app = express();
+let name = localStorage.getItem("username")
+let vtuno = localStorage.getItem("vtuno")
 
-app.use(cors());
-app.use(express.json());
+document.getElementById("name").innerText = name
+document.getElementById("vtuno").innerText = vtuno
 
 
-// =============================
-// Serve Frontend
-// =============================
-app.use(express.static(path.join(__dirname, "../frontend")));
+// ===== Get Scores =====
 
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "../frontend/index.html"));
-});
+let htmlScore = Number(localStorage.getItem("html_score")) || 0
+let cssScore = Number(localStorage.getItem("css_score")) || 0
+let jsScore = Number(localStorage.getItem("javascript_score")) || 0
 
-
-// =============================
-// Save Quiz Result (No duplicates)
-// =============================
-app.post("/submit-quiz", (req, res) => {
-
-const { name, vtuno, html, css, javascript } = req.body;
-
-if(!vtuno){
-return res.status(400).json({message:"VTU number missing"});
-}
-
-db.query("SELECT id FROM users WHERE vtuno = ?", [vtuno], (err, userResult) => {
-
-if (err) {
-console.error(err);
-return res.status(500).json({ message: "User lookup failed" });
-}
-
-if (userResult.length > 0) {
-
-const userId = userResult[0].id;
-checkScore(userId);
-
-} else {
-
-db.query(
-"INSERT INTO users (name, vtuno) VALUES (?, ?)",
-[name, vtuno],
-(err, result) => {
-
-if (err) {
-console.error(err);
-return res.status(500).json({ message: "User insert failed" });
-}
-
-const userId = result.insertId;
-checkScore(userId);
-
-});
-}
-
-});
+let total = htmlScore + cssScore + jsScore
 
 
-// Check if score already exists
-function checkScore(userId){
+// ===== Show Scores =====
 
-db.query(
-"SELECT id FROM scores WHERE user_id = ?",
-[userId],
-(err, scoreResult) => {
-
-if (err) {
-console.error(err);
-return res.status(500).json({ message: "Score lookup failed" });
-}
-
-if(scoreResult.length > 0){
-return res.json({ message: "Result already saved" });
-}
-
-insertScore(userId);
-
-});
-
-}
+document.getElementById("html").innerText = htmlScore
+document.getElementById("css").innerText = cssScore
+document.getElementById("js").innerText = jsScore
+document.getElementById("total").innerText = total
 
 
-// Insert score
-function insertScore(userId){
+// ===== Pass / Fail Logic =====
 
-db.query(
-`INSERT INTO scores (user_id, html_score, css_score, js_score)
-VALUES (?, ?, ?, ?)`,
-[userId, html, css, javascript],
-(err) => {
+let passMark = 15
+let certificateBtn = document.getElementById("actionBtn")
 
-if (err) {
-console.error(err);
-return res.status(500).json({ message: "Score insert failed" });
-}
+if(total >= passMark){
 
-res.json({ success: true });
+    // mark completed locally
+    localStorage.setItem(vtuno + "_completed", "true")
 
-});
-
-}
-
-});
-
-
-// =============================
-// Check Quiz Completion
-// =============================
-app.get("/check-completion/:vtuno", (req, res) => {
-
-const vtuno = req.params.vtuno;
-
-const query = `
-SELECT 
-scores.html_score,
-scores.css_score,
-scores.js_score
-FROM users
-LEFT JOIN scores ON users.id = scores.user_id
-WHERE users.vtuno = ?
-LIMIT 1
-`;
-
-db.query(query, [vtuno], (err, result) => {
-
-if (err) {
-console.error(err);
-return res.status(500).json({ completed:false, total:0 });
-}
-
-if(result.length === 0 || result[0].html_score === null){
-return res.json({ completed:false, total:0 });
-}
-
-const row = result[0];
-
-const total =
-(row.html_score || 0) +
-(row.css_score || 0) +
-(row.js_score || 0);
-
-if(total >= 15){
-res.json({ completed:true, total:total });
 }else{
-res.json({ completed:false, total:total });
+
+    certificateBtn.innerText = "Try Again"
+
+    certificateBtn.onclick = function(){
+
+        // clear previous scores
+        localStorage.removeItem("html_score")
+        localStorage.removeItem("css_score")
+        localStorage.removeItem("javascript_score")
+
+        // reset module progress (IMPORTANT)
+        localStorage.setItem("language","html")
+
+        // allow DB save again
+        sessionStorage.removeItem("result_saved")
+
+        // remove completion flag
+        localStorage.removeItem(vtuno + "_completed")
+
+        // restart quiz from module 1
+        window.location.href = "quiz.html"
+
+    }
+
 }
 
-});
 
-});
+// ===== Save Result To Database (ONLY ONCE) =====
 
+let saved = sessionStorage.getItem("result_saved")
 
-// =============================
-// Admin: View Results
-// =============================
-app.get("/admin/results", (req, res) => {
+if(!saved){
 
-const query = `
-SELECT 
-users.name,
-users.vtuno,
-scores.html_score,
-scores.css_score,
-scores.js_score,
-(IFNULL(scores.html_score,0) +
-IFNULL(scores.css_score,0) +
-IFNULL(scores.js_score,0)) AS total,
-scores.created_at
-FROM users
-LEFT JOIN scores ON users.id = scores.user_id
-ORDER BY users.id DESC
-`;
+    fetch("https://quiz-engine-mt13.onrender.com/submit-quiz", {
 
-db.query(query, (err, results) => {
+        method: "POST",
 
-if (err) {
-console.log("SQL ERROR:", err);
-return res.status(500).json({ message: "Fetch failed" });
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            name: name,
+            vtuno: vtuno,
+            html: htmlScore,
+            css: cssScore,
+            javascript: jsScore
+
+        })
+
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        console.log("Saved to DB:", data)
+
+        // prevent duplicate save
+        sessionStorage.setItem("result_saved","true")
+
+    })
+    .catch(err => console.log("Error saving:", err))
+
 }
 
-res.json(results);
 
-});
+// ===== Certificate Generator =====
 
-});
+function downloadCertificate(){
+
+    if(total < 15){
+
+        alert("You must score at least 15 marks to download the certificate.")
+        return
+
+    }
+
+    const jsPDF = window.jspdf.jsPDF
+    const doc = new jsPDF("landscape")
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+
+    const today = new Date().toLocaleDateString()
+    const certificateID = "CERT-" + Math.floor(100000 + Math.random() * 900000)
 
 
-// =============================
-// Admin: Download Excel
-// =============================
-app.get("/admin/download-excel", async (req, res) => {
+    // Background
+    doc.setFillColor(15,12,41)
+    doc.rect(0,0,pageWidth,pageHeight,"F")
 
-const workbook = new ExcelJS.Workbook();
-const worksheet = workbook.addWorksheet("Quiz Results");
 
-worksheet.columns = [
-{ header: "Name", key: "name", width: 20 },
-{ header: "VTU Number", key: "vtuno", width: 20 },
-{ header: "HTML Score", key: "html_score", width: 15 },
-{ header: "CSS Score", key: "css_score", width: 15 },
-{ header: "JavaScript Score", key: "js_score", width: 20 },
-{ header: "Total Score", key: "total", width: 15 },
-{ header: "Date", key: "created_at", width: 25 }
-];
+    // Border
+    doc.setDrawColor(0,245,255)
+    doc.setLineWidth(5)
+    doc.rect(10,10,pageWidth-20,pageHeight-20)
 
-const query = `
-SELECT 
-users.name,
-users.vtuno,
-scores.html_score,
-scores.css_score,
-scores.js_score,
-(IFNULL(scores.html_score,0) +
-IFNULL(scores.css_score,0) +
-IFNULL(scores.js_score,0)) AS total,
-scores.created_at
-FROM users
-LEFT JOIN scores ON users.id = scores.user_id
-`;
 
-db.query(query, async (err, rows) => {
+    // Title
+    doc.setTextColor(255,0,204)
+    doc.setFont("helvetica","bold")
+    doc.setFontSize(34)
+    doc.text("CERTIFICATE OF COMPLETION",pageWidth/2,45,{align:"center"})
 
-if (err) {
-console.error(err);
-return res.status(500).json({ message: "Excel export failed" });
+
+    // Subtitle
+    doc.setTextColor(255,255,255)
+    doc.setFontSize(18)
+    doc.setFont("helvetica","normal")
+    doc.text("This certificate is proudly presented to",pageWidth/2,75,{align:"center"})
+
+
+    // Name
+    doc.setTextColor(0,245,255)
+    doc.setFont("times","bold")
+    doc.setFontSize(30)
+    doc.text(name.toUpperCase(),pageWidth/2,100,{align:"center"})
+
+
+    // VTU Number
+    doc.setFontSize(16)
+    doc.setTextColor(255,255,255)
+    doc.text("VTU Number : " + vtuno,pageWidth/2,115,{align:"center"})
+
+
+    // Course
+    doc.setFontSize(18)
+    doc.text("For successfully completing the course",pageWidth/2,135,{align:"center"})
+
+    doc.setFont("helvetica","bold")
+    doc.text("FULLSTACK WITH JAVA QUIZ",pageWidth/2,150,{align:"center"})
+
+
+    // Score
+    doc.setFont("helvetica","normal")
+    doc.setFontSize(18)
+    doc.text("Total Score : " + total + " / 30",pageWidth/2,170,{align:"center"})
+
+
+    // Footer
+    doc.setFontSize(14)
+    doc.text("Date : " + today,30,pageHeight-30)
+    doc.text("Certificate ID : " + certificateID,pageWidth-120,pageHeight-30)
+
+
+    // Download
+    doc.save(name + "_certificate.pdf")
+
 }
 
-rows.forEach(row => worksheet.addRow(row));
 
-res.setHeader(
-"Content-Type",
-"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-);
+// ===== Home Button =====
 
-res.setHeader(
-"Content-Disposition",
-"attachment; filename=quiz_results.xlsx"
-);
+function goHome(){
 
-await workbook.xlsx.write(res);
-res.end();
+    window.location.href = "index.html"
 
-});
-
-});
-
-
-// =============================
-// Start Server
-// =============================
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-console.log(`🚀 Server running on port ${PORT}`);
-});
+}
