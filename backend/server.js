@@ -34,6 +34,10 @@ if(total >= passMark){
     // mark completed locally
     localStorage.setItem(vtuno + "_completed", "true")
 
+    // ensure certificate button works
+    certificateBtn.innerText = "Download Certificate"
+    certificateBtn.onclick = downloadCertificate
+
 }else{
 
     certificateBtn.innerText = "Try Again"
@@ -45,7 +49,7 @@ if(total >= passMark){
         localStorage.removeItem("css_score")
         localStorage.removeItem("javascript_score")
 
-        // reset module progress (IMPORTANT)
+        // reset module progress
         localStorage.setItem("language","html")
 
         // allow DB save again
@@ -126,12 +130,10 @@ function downloadCertificate(){
     doc.setFillColor(15,12,41)
     doc.rect(0,0,pageWidth,pageHeight,"F")
 
-
     // Border
     doc.setDrawColor(0,245,255)
     doc.setLineWidth(5)
     doc.rect(10,10,pageWidth-20,pageHeight-20)
-
 
     // Title
     doc.setTextColor(255,0,204)
@@ -139,13 +141,11 @@ function downloadCertificate(){
     doc.setFontSize(34)
     doc.text("CERTIFICATE OF COMPLETION",pageWidth/2,45,{align:"center"})
 
-
     // Subtitle
     doc.setTextColor(255,255,255)
     doc.setFontSize(18)
     doc.setFont("helvetica","normal")
     doc.text("This certificate is proudly presented to",pageWidth/2,75,{align:"center"})
-
 
     // Name
     doc.setTextColor(0,245,255)
@@ -153,32 +153,26 @@ function downloadCertificate(){
     doc.setFontSize(30)
     doc.text(name.toUpperCase(),pageWidth/2,100,{align:"center"})
 
-
     // VTU Number
     doc.setFontSize(16)
     doc.setTextColor(255,255,255)
     doc.text("VTU Number : " + vtuno,pageWidth/2,115,{align:"center"})
 
-
     // Course
     doc.setFontSize(18)
     doc.text("For successfully completing the course",pageWidth/2,135,{align:"center"})
-
     doc.setFont("helvetica","bold")
     doc.text("FULLSTACK WITH JAVA QUIZ",pageWidth/2,150,{align:"center"})
-
 
     // Score
     doc.setFont("helvetica","normal")
     doc.setFontSize(18)
     doc.text("Total Score : " + total + " / 30",pageWidth/2,170,{align:"center"})
 
-
     // Footer
     doc.setFontSize(14)
     doc.text("Date : " + today,30,pageHeight-30)
     doc.text("Certificate ID : " + certificateID,pageWidth-120,pageHeight-30)
-
 
     // Download
     doc.save(name + "_certificate.pdf")
@@ -189,7 +183,5 @@ function downloadCertificate(){
 // ===== Home Button =====
 
 function goHome(){
-
     window.location.href = "index.html"
-
 }
