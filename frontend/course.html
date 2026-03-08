@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -52,6 +51,10 @@ startBtn.style.display = "none"
 }
 
 
+// Check if user forced retry
+let retryMode = localStorage.getItem("retry_quiz")
+
+
 // Check completion from database
 fetch("https://quiz-engine-mt13.onrender.com/check-completion/" + vtuno)
 
@@ -59,7 +62,7 @@ fetch("https://quiz-engine-mt13.onrender.com/check-completion/" + vtuno)
 
 .then(data => {
 
-if(data.completed){
+if(data.completed && !retryMode){
 
 statusText.innerHTML = "Status : Completed ✅"
 
@@ -69,6 +72,7 @@ extraSection.innerHTML = `
 <p>You have already completed this course.</p>
 
 <button onclick="goToResult()">Download Certificate</button>
+<button onclick="retryQuiz()">Retake Quiz</button>
 <button onclick="goBack()">Back</button>
 `
 
@@ -103,6 +107,23 @@ localStorage.removeItem("html_score")
 localStorage.removeItem("css_score")
 localStorage.removeItem("javascript_score")
 
+// remove retry flag once quiz starts
+localStorage.removeItem("retry_quiz")
+
+window.location.href = "quiz.html"
+
+}
+
+
+// Allow retake quiz
+function retryQuiz(){
+
+localStorage.setItem("retry_quiz","true")
+
+localStorage.removeItem("html_score")
+localStorage.removeItem("css_score")
+localStorage.removeItem("javascript_score")
+
 window.location.href = "quiz.html"
 
 }
@@ -123,4 +144,6 @@ window.location.href = "index.html"
 
 </body>
 </html>
+
+
 

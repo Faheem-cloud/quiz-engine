@@ -32,6 +32,7 @@ let certificateBtn = document.getElementById("actionBtn")
 
 if(total >= passMark){
 
+// mark completed locally
 localStorage.setItem(vtuno + "_completed", "true")
 
 }else{
@@ -40,11 +41,19 @@ certificateBtn.innerText = "Try Again"
 
 certificateBtn.onclick = function(){
 
+// clear previous scores
 localStorage.removeItem("html_score")
 localStorage.removeItem("css_score")
 localStorage.removeItem("javascript_score")
 
-window.location.href = "course.html"
+// allow new DB save
+sessionStorage.removeItem("result_saved")
+
+// reset completion flag
+localStorage.removeItem(vtuno + "_completed")
+
+// restart quiz
+window.location.href = "quiz.html"
 
 }
 
@@ -71,8 +80,7 @@ name: name,
 vtuno: vtuno,
 html: htmlScore,
 css: cssScore,
-javascript: jsScore,
-total: total
+javascript: jsScore
 
 })
 
@@ -82,6 +90,7 @@ total: total
 
 console.log("Saved to DB:", data)
 
+// prevent duplicate save
 sessionStorage.setItem("result_saved","true")
 
 })
