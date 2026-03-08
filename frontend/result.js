@@ -70,8 +70,8 @@ if(total >= passMark){
 
 let saved = sessionStorage.getItem("result_saved")
 
-// Only save if quiz was actually attempted
-if(!saved && total > 0){
+// Save whenever quiz was attempted (pass OR fail)
+if(total > 0 && !saved){
 
     fetch("https://quiz-engine-mt13.onrender.com/submit-quiz", {
 
@@ -97,7 +97,7 @@ if(!saved && total > 0){
 
         console.log("Saved to DB:", data)
 
-        // prevent duplicate save
+        // prevent duplicate save on refresh
         sessionStorage.setItem("result_saved","true")
 
     })
@@ -126,56 +126,45 @@ function downloadCertificate(){
     const today = new Date().toLocaleDateString()
     const certificateID = "CERT-" + Math.floor(100000 + Math.random() * 900000)
 
-
-    // Background
     doc.setFillColor(15,12,41)
     doc.rect(0,0,pageWidth,pageHeight,"F")
 
-    // Border
     doc.setDrawColor(0,245,255)
     doc.setLineWidth(5)
     doc.rect(10,10,pageWidth-20,pageHeight-20)
 
-    // Title
     doc.setTextColor(255,0,204)
     doc.setFont("helvetica","bold")
     doc.setFontSize(34)
     doc.text("CERTIFICATE OF COMPLETION",pageWidth/2,45,{align:"center"})
 
-    // Subtitle
     doc.setTextColor(255,255,255)
     doc.setFontSize(18)
     doc.setFont("helvetica","normal")
     doc.text("This certificate is proudly presented to",pageWidth/2,75,{align:"center"})
 
-    // Name
     doc.setTextColor(0,245,255)
     doc.setFont("times","bold")
     doc.setFontSize(30)
     doc.text(name.toUpperCase(),pageWidth/2,100,{align:"center"})
 
-    // VTU Number
     doc.setFontSize(16)
     doc.setTextColor(255,255,255)
     doc.text("VTU Number : " + vtuno,pageWidth/2,115,{align:"center"})
 
-    // Course
     doc.setFontSize(18)
     doc.text("For successfully completing the course",pageWidth/2,135,{align:"center"})
     doc.setFont("helvetica","bold")
     doc.text("FULLSTACK WITH JAVA QUIZ",pageWidth/2,150,{align:"center"})
 
-    // Score
     doc.setFont("helvetica","normal")
     doc.setFontSize(18)
     doc.text("Total Score : " + total + " / 30",pageWidth/2,170,{align:"center"})
 
-    // Footer
     doc.setFontSize(14)
     doc.text("Date : " + today,30,pageHeight-30)
     doc.text("Certificate ID : " + certificateID,pageWidth-120,pageHeight-30)
 
-    // Download
     doc.save(name + "_certificate.pdf")
 
 }
