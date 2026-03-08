@@ -181,7 +181,7 @@ app.get("/admin/download-excel", async (req, res) => {
         { header: "CSS Score", key: "css_score", width: 15 },
         { header: "JavaScript Score", key: "js_score", width: 20 },
         { header: "Total Score", key: "total", width: 15 },
-        { header: "Time", key: "created_at", width: 25 }
+        { header: "Date", key: "created_at", width: 25 }
     ];
 
     const query = `
