@@ -74,11 +74,32 @@ app.post("/submit-quiz", (req, res) => {
                     return res.status(500).json({ message: "Score lookup failed" });
                 }
 
+                // ===== ADDED LOGIC FOR RETRY UPDATE =====
                 if (scoreResult.length > 0) {
-                    return res.json({ message: "Result already saved" });
-                }
 
-                insertScore(userId);
+                    db.query(
+                        `UPDATE scores 
+                         SET html_score = ?, css_score = ?, js_score = ?
+                         WHERE user_id = ?`,
+                        [html, css, javascript, userId],
+                        (err) => {
+
+                            if (err) {
+                                console.error(err);
+                                return res.status(500).json({ message: "Score update failed" });
+                            }
+
+                            return res.json({ message: "Result updated" });
+                        }
+                    );
+
+                } 
+                else {
+
+                    insertScore(userId);
+
+                }
+                // ===== END ADDED LOGIC =====
             }
         );
     }
