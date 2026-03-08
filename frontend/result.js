@@ -70,7 +70,8 @@ if(total >= passMark){
 
 let saved = sessionStorage.getItem("result_saved")
 
-if(!saved){
+// Only save if quiz was actually attempted
+if(!saved && total > 0){
 
     fetch("https://quiz-engine-mt13.onrender.com/submit-quiz", {
 
@@ -183,7 +184,5 @@ function downloadCertificate(){
 // ===== Home Button =====
 
 function goHome(){
-
     window.location.href = "index.html"
-
 }
