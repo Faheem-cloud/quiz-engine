@@ -9,6 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // =============================
 // Serve Frontend
 // =============================
@@ -25,6 +26,10 @@ res.sendFile(path.join(__dirname, "../frontend/index.html"));
 app.post("/submit-quiz", (req, res) => {
 
 const { name, vtuno, html, css, javascript } = req.body;
+
+if(!vtuno){
+return res.status(400).json({message:"VTU number missing"});
+}
 
 db.query("SELECT id FROM users WHERE vtuno = ?", [vtuno], (err, userResult) => {
 

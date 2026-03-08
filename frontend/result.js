@@ -1,4 +1,3 @@
-
 // ===== Get Student Details =====
 
 let name = localStorage.getItem("username")
@@ -28,28 +27,37 @@ document.getElementById("total").innerText = total
 // ===== Pass / Fail Logic =====
 
 let passMark = 15
-let actionBtn = document.getElementById("actionBtn")
+let certificateBtn = document.getElementById("actionBtn")
 
-if(total < passMark){
+if(total >= passMark){
 
-actionBtn.innerText = "Try Again"
+    // mark completed locally
+    localStorage.setItem(vtuno + "_completed", "true")
 
-actionBtn.onclick = function(){
+}else{
 
-// clear previous scores
-localStorage.removeItem("html_score")
-localStorage.removeItem("css_score")
-localStorage.removeItem("javascript_score")
+    certificateBtn.innerText = "Try Again"
 
-// restart from module 1
-localStorage.setItem("language","html")
+    certificateBtn.onclick = function(){
 
-// allow database save again
-sessionStorage.removeItem("result_saved")
+        // clear previous scores
+        localStorage.removeItem("html_score")
+        localStorage.removeItem("css_score")
+        localStorage.removeItem("javascript_score")
 
-window.location.href = "quiz.html"
+        // reset module progress (IMPORTANT)
+        localStorage.setItem("language","html")
 
-}
+        // allow DB save again
+        sessionStorage.removeItem("result_saved")
+
+        // remove completion flag
+        localStorage.removeItem(vtuno + "_completed")
+
+        // restart quiz from module 1
+        window.location.href = "quiz.html"
+
+    }
 
 }
 
@@ -60,32 +68,35 @@ let saved = sessionStorage.getItem("result_saved")
 
 if(!saved){
 
-fetch("https://quiz-engine-mt13.onrender.com/submit-quiz", {
+    fetch("https://quiz-engine-mt13.onrender.com/submit-quiz", {
 
-method: "POST",
+        method: "POST",
 
-headers: {
-"Content-Type": "application/json"
-},
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-body: JSON.stringify({
-name: name,
-vtuno: vtuno,
-html: htmlScore,
-css: cssScore,
-javascript: jsScore
-})
+        body: JSON.stringify({
 
-})
-.then(res => res.json())
-.then(data => {
+            name: name,
+            vtuno: vtuno,
+            html: htmlScore,
+            css: cssScore,
+            javascript: jsScore
 
-console.log("Saved to DB:", data)
+        })
 
-sessionStorage.setItem("result_saved","true")
+    })
+    .then(res => res.json())
+    .then(data => {
 
-})
-.catch(err => console.log("Error saving:", err))
+        console.log("Saved to DB:", data)
+
+        // prevent duplicate save
+        sessionStorage.setItem("result_saved","true")
+
+    })
+    .catch(err => console.log("Error saving:", err))
 
 }
 
@@ -94,74 +105,83 @@ sessionStorage.setItem("result_saved","true")
 
 function downloadCertificate(){
 
-if(total < 15){
+    if(total < 15){
 
-alert("You must score at least 15 marks to download the certificate.")
-return
+        alert("You must score at least 15 marks to download the certificate.")
+        return
 
-}
+    }
 
-const jsPDF = window.jspdf.jsPDF
-const doc = new jsPDF("landscape")
+    const jsPDF = window.jspdf.jsPDF
+    const doc = new jsPDF("landscape")
 
-const pageWidth = doc.internal.pageSize.getWidth()
-const pageHeight = doc.internal.pageSize.getHeight()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
 
-const today = new Date().toLocaleDateString()
-const certificateID = "CERT-" + Math.floor(100000 + Math.random() * 900000)
-
-
-// Background
-doc.setFillColor(15,12,41)
-doc.rect(0,0,pageWidth,pageHeight,"F")
-
-// Border
-doc.setDrawColor(0,245,255)
-doc.setLineWidth(5)
-doc.rect(10,10,pageWidth-20,pageHeight-20)
+    const today = new Date().toLocaleDateString()
+    const certificateID = "CERT-" + Math.floor(100000 + Math.random() * 900000)
 
 
-// Title
-doc.setTextColor(255,0,204)
-doc.setFont("helvetica","bold")
-doc.setFontSize(34)
-doc.text("CERTIFICATE OF COMPLETION",pageWidth/2,45,{align:"center"})
+    // Background
+    doc.setFillColor(15,12,41)
+    doc.rect(0,0,pageWidth,pageHeight,"F")
 
-// Subtitle
-doc.setTextColor(255,255,255)
-doc.setFontSize(18)
-doc.setFont("helvetica","normal")
-doc.text("This certificate is proudly presented to",pageWidth/2,75,{align:"center"})
 
-// Name
-doc.setTextColor(0,245,255)
-doc.setFont("times","bold")
-doc.setFontSize(30)
-doc.text(name.toUpperCase(),pageWidth/2,100,{align:"center"})
+    // Border
+    doc.setDrawColor(0,245,255)
+    doc.setLineWidth(5)
+    doc.rect(10,10,pageWidth-20,pageHeight-20)
 
-// VTU Number
-doc.setFontSize(16)
-doc.setTextColor(255,255,255)
-doc.text("VTU Number : " + vtuno,pageWidth/2,115,{align:"center"})
 
-// Course
-doc.setFontSize(18)
-doc.text("For successfully completing the course",pageWidth/2,135,{align:"center"})
-doc.setFont("helvetica","bold")
-doc.text("FULLSTACK WITH JAVA QUIZ",pageWidth/2,150,{align:"center"})
+    // Title
+    doc.setTextColor(255,0,204)
+    doc.setFont("helvetica","bold")
+    doc.setFontSize(34)
+    doc.text("CERTIFICATE OF COMPLETION",pageWidth/2,45,{align:"center"})
 
-// Score
-doc.setFont("helvetica","normal")
-doc.setFontSize(18)
-doc.text("Total Score : " + total + " / 30",pageWidth/2,170,{align:"center"})
 
-// Footer
-doc.setFontSize(14)
-doc.text("Date : " + today,30,pageHeight-30)
-doc.text("Certificate ID : " + certificateID,pageWidth-120,pageHeight-30)
+    // Subtitle
+    doc.setTextColor(255,255,255)
+    doc.setFontSize(18)
+    doc.setFont("helvetica","normal")
+    doc.text("This certificate is proudly presented to",pageWidth/2,75,{align:"center"})
 
-// Download
-doc.save(name + "_certificate.pdf")
+
+    // Name
+    doc.setTextColor(0,245,255)
+    doc.setFont("times","bold")
+    doc.setFontSize(30)
+    doc.text(name.toUpperCase(),pageWidth/2,100,{align:"center"})
+
+
+    // VTU Number
+    doc.setFontSize(16)
+    doc.setTextColor(255,255,255)
+    doc.text("VTU Number : " + vtuno,pageWidth/2,115,{align:"center"})
+
+
+    // Course
+    doc.setFontSize(18)
+    doc.text("For successfully completing the course",pageWidth/2,135,{align:"center"})
+
+    doc.setFont("helvetica","bold")
+    doc.text("FULLSTACK WITH JAVA QUIZ",pageWidth/2,150,{align:"center"})
+
+
+    // Score
+    doc.setFont("helvetica","normal")
+    doc.setFontSize(18)
+    doc.text("Total Score : " + total + " / 30",pageWidth/2,170,{align:"center"})
+
+
+    // Footer
+    doc.setFontSize(14)
+    doc.text("Date : " + today,30,pageHeight-30)
+    doc.text("Certificate ID : " + certificateID,pageWidth-120,pageHeight-30)
+
+
+    // Download
+    doc.save(name + "_certificate.pdf")
 
 }
 
@@ -169,6 +189,7 @@ doc.save(name + "_certificate.pdf")
 // ===== Home Button =====
 
 function goHome(){
-window.location.href = "index.html"
-}
 
+    window.location.href = "index.html"
+
+}
