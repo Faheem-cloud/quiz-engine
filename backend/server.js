@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/index.html"));
+res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
 
@@ -59,7 +59,7 @@ checkScore(userId);
 });
 
 
-// Check if score exists
+// Check if score already exists
 function checkScore(userId){
 
 db.query(
@@ -83,7 +83,7 @@ insertScore(userId);
 }
 
 
-// Insert Score
+// Insert score
 function insertScore(userId){
 
 db.query(
@@ -119,7 +119,7 @@ scores.html_score,
 scores.css_score,
 scores.js_score
 FROM users
-JOIN scores ON users.id = scores.user_id
+LEFT JOIN scores ON users.id = scores.user_id
 WHERE users.vtuno = ?
 LIMIT 1
 `;
@@ -128,11 +128,11 @@ db.query(query, [vtuno], (err, result) => {
 
 if (err) {
 console.error(err);
-return res.status(500).json({ completed: false });
+return res.status(500).json({ completed:false, total:0 });
 }
 
-if(result.length === 0){
-return res.json({ completed:false });
+if(result.length === 0 || result[0].html_score === null){
+return res.json({ completed:false, total:0 });
 }
 
 const row = result[0];
@@ -142,11 +142,10 @@ const total =
 (row.css_score || 0) +
 (row.js_score || 0);
 
-// Completed only if pass
 if(total >= 15){
-res.json({ completed:true });
+res.json({ completed:true, total:total });
 }else{
-res.json({ completed:false });
+res.json({ completed:false, total:total });
 }
 
 });

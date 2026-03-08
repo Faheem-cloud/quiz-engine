@@ -55,11 +55,6 @@ startBtn.style.display = "none"
 }
 
 
-// ===== Check Retry Mode =====
-
-let retryMode = localStorage.getItem("retry_quiz")
-
-
 // ===== Check Completion From Server =====
 
 fetch("https://quiz-engine-mt13.onrender.com/check-completion/" + vtuno)
@@ -68,21 +63,46 @@ fetch("https://quiz-engine-mt13.onrender.com/check-completion/" + vtuno)
 
 .then(data => {
 
-if(data.completed && !retryMode){
+let total = data.total || 0
+
+// ===== Passed =====
+
+if(data.completed){
 
 statusText.innerHTML = "Status : Completed ✅"
 
 startBtn.style.display = "none"
 
 extraSection.innerHTML = `
-<p>You have already completed this course.</p>
+<p>You have successfully completed this course.</p>
 
 <button onclick="goToResult()">Download Certificate</button>
 <button onclick="retryQuiz()">Retake Quiz</button>
 <button onclick="goBack()">Back</button>
 `
 
-}else{
+}
+
+// ===== Failed =====
+
+else if(total > 0 && total < 15){
+
+statusText.innerHTML = "Status : Failed ❌"
+
+startBtn.style.display = "none"
+
+extraSection.innerHTML = `
+<p>Your previous attempt did not reach the passing score.</p>
+
+<button onclick="retryQuiz()">Try Again</button>
+<button onclick="goBack()">Back</button>
+`
+
+}
+
+// ===== Not Attempted =====
+
+else{
 
 statusText.innerHTML = "Status : Not Attempted"
 
@@ -109,16 +129,11 @@ statusText.innerHTML = "Error checking quiz status"
 
 function startQuiz(){
 
-// start from module 1
 localStorage.setItem("language","html")
 
-// clear previous scores
 localStorage.removeItem("html_score")
 localStorage.removeItem("css_score")
 localStorage.removeItem("javascript_score")
-
-// remove retry flag
-localStorage.removeItem("retry_quiz")
 
 window.location.href = "quiz.html"
 
@@ -130,16 +145,13 @@ window.location.href = "quiz.html"
 
 function retryQuiz(){
 
-// enable retry mode
-localStorage.setItem("retry_quiz","true")
-
-// reset module progress
 localStorage.setItem("language","html")
 
-// clear previous scores
 localStorage.removeItem("html_score")
 localStorage.removeItem("css_score")
 localStorage.removeItem("javascript_score")
+
+sessionStorage.removeItem("result_saved")
 
 window.location.href = "quiz.html"
 

@@ -1,4 +1,13 @@
+
+// ===== Get Current Language Module =====
+
 let language = localStorage.getItem("language")
+
+// If language not set, start from HTML
+if(!language){
+language = "html"
+localStorage.setItem("language","html")
+}
 
 let quizQuestions = questions[language]
 
@@ -14,139 +23,146 @@ const optionsEl = document.getElementById("options")
 const timerEl = document.getElementById("timer")
 
 
-// Check if questions exist
+// ===== Check Questions =====
+
 if (!quizQuestions || quizQuestions.length === 0) {
 
-    questionEl.innerText = "No questions found!"
+questionEl.innerText = "No questions found!"
 
 } else {
 
-    loadQuestion()
-    startTimer()
+loadQuestion()
+startTimer()
 
 }
 
 
-// Load Question
+// ===== Load Question =====
+
 function loadQuestion() {
 
-    let q = quizQuestions[currentQuestion]
+let q = quizQuestions[currentQuestion]
 
-    // Add question number
-    questionEl.innerText =
-    "Question " + (currentQuestion + 1) + " / " + quizQuestions.length + " : " + q.question
+questionEl.innerText =
+"Question " + (currentQuestion + 1) + " / " + quizQuestions.length + " : " + q.question
 
-    optionsEl.innerHTML = ""
+optionsEl.innerHTML = ""
 
-    selected = null
+selected = null
 
-    q.options.forEach((option, index) => {
+q.options.forEach((option, index) => {
 
-        let div = document.createElement("div")
+let div = document.createElement("div")
 
-        div.classList.add("option")
+div.classList.add("option")
 
-        div.innerText = option
+div.innerText = option
 
-        div.onclick = function () {
+div.onclick = function () {
 
-            document.querySelectorAll(".option").forEach(opt =>
-                opt.classList.remove("selected")
-            )
+document.querySelectorAll(".option").forEach(opt =>
+opt.classList.remove("selected")
+)
 
-            div.classList.add("selected")
+div.classList.add("selected")
 
-            selected = index
-        }
+selected = index
 
-        optionsEl.appendChild(div)
+}
 
-    })
+optionsEl.appendChild(div)
+
+})
 
 }
 
 
-// Next Question
+// ===== Next Question =====
+
 function nextQuestion() {
 
-    if (selected === null) {
+if (selected === null) {
 
-        alert("Please select an option before continuing!")
+alert("Please select an option before continuing!")
 
-        return
+return
 
-    }
+}
 
-    if (selected === quizQuestions[currentQuestion].correct) {
+if (selected === quizQuestions[currentQuestion].correct) {
 
-        score++
+score++
 
-    }
+}
 
-    currentQuestion++
+currentQuestion++
 
-    if (currentQuestion < quizQuestions.length) {
+if (currentQuestion < quizQuestions.length) {
 
-        loadQuestion()
+loadQuestion()
 
-    } else {
+} else {
 
-        finishQuiz()
+finishQuiz()
 
-    }
+}
 
 }
 
 
-// Finish Quiz
+// ===== Finish Quiz =====
+
 function finishQuiz() {
 
-    clearInterval(timerInterval)
+clearInterval(timerInterval)
 
-    // Save score of current module
-    localStorage.setItem(language + "_score", score)
+// Save module score
+localStorage.setItem(language + "_score", score)
 
 
-    // Course Flow Control
-    if (language === "html") {
+// ===== Module Flow =====
 
-        localStorage.setItem("language", "css")
-        window.location.href = "quiz.html"
+if (language === "html") {
 
-    }
+localStorage.setItem("language", "css")
+window.location.href = "quiz.html"
 
-    else if (language === "css") {
+}
 
-        localStorage.setItem("language", "javascript")
-        window.location.href = "quiz.html"
+else if (language === "css") {
 
-    }
+localStorage.setItem("language", "javascript")
+window.location.href = "quiz.html"
 
-    else {
+}
 
-        // After JavaScript quiz
-        window.location.href = "result.html"
+else {
 
-    }
+// Quiz finished → go to result page
+window.location.href = "result.html"
+
+}
 
 }
 
 
-// Timer
+// ===== Timer =====
+
 function startTimer() {
 
-    timerInterval = setInterval(() => {
+timerInterval = setInterval(() => {
 
-        timeLeft--
+timeLeft--
 
-        timerEl.innerText = "Time Left: " + timeLeft + "s"
+timerEl.innerText = "Time Left: " + timeLeft + "s"
 
-        if (timeLeft <= 0) {
+if (timeLeft <= 0) {
 
-            finishQuiz()
-
-        }
-
-    }, 1000)
+finishQuiz()
 
 }
+
+}, 1000)
+
+}
+
