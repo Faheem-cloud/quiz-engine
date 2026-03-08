@@ -28,6 +28,12 @@ app.post("/submit-quiz", (req, res) => {
 
     const { name, vtuno, html, css, javascript } = req.body;
 
+    // ===== SMALL VALIDATION ADDED =====
+    if(!vtuno){
+        return res.status(400).json({message:"Invalid user"});
+    }
+    // ==================================
+
     // Check if user exists
     db.query("SELECT id FROM users WHERE vtuno = ?", [vtuno], (err, userResult) => {
 
@@ -74,7 +80,7 @@ app.post("/submit-quiz", (req, res) => {
                     return res.status(500).json({ message: "Score lookup failed" });
                 }
 
-                // ===== ADDED LOGIC FOR RETRY UPDATE =====
+                // ===== RETRY UPDATE =====
                 if (scoreResult.length > 0) {
 
                     db.query(
@@ -99,7 +105,7 @@ app.post("/submit-quiz", (req, res) => {
                     insertScore(userId);
 
                 }
-                // ===== END ADDED LOGIC =====
+                // ========================
             }
         );
     }
@@ -205,6 +211,7 @@ res.json(results);
 });
 
 });
+
 
 // =============================
 // Admin: Download Excel
