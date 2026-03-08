@@ -135,7 +135,10 @@ app.get("/check-completion/:vtuno", (req, res) => {
     const vtuno = req.params.vtuno;
 
     const query = `
-    SELECT scores.id
+    SELECT 
+    scores.html_score,
+    scores.css_score,
+    scores.js_score
     FROM users
     LEFT JOIN scores ON users.id = scores.user_id
     WHERE users.vtuno = ?
@@ -146,10 +149,26 @@ app.get("/check-completion/:vtuno", (req, res) => {
 
         if (err) {
             console.error(err);
-            return res.status(500).json({ completed: false });
+            return res.status(500).json({ completed: false, total: 0 });
         }
 
-        res.json({ completed: result.length > 0 });
+        if(result.length === 0 || result[0].html_score === null){
+            return res.json({ completed:false, total:0 });
+        }
+
+        const row = result[0];
+
+        const total =
+        (row.html_score || 0) +
+        (row.css_score || 0) +
+        (row.js_score || 0);
+
+        if(total >= 15){
+            res.json({ completed:true, total:total });
+        }else{
+            res.json({ completed:false, total:total });
+        }
+
     });
 
 });
