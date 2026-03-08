@@ -9,99 +9,99 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve frontend
+// =============================
+// Serve Frontend
+// =============================
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-
-// =============================
-// Home Route
-// =============================
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
 
 // =============================
-// Save Quiz Result (NO DUPLICATES)
+// Save Quiz Result (No duplicates)
 // =============================
 app.post("/submit-quiz", (req, res) => {
 
-    const { name, vtuno, html, css, javascript } = req.body;
+const { name, vtuno, html, css, javascript } = req.body;
 
-    // Check if user exists
-    db.query("SELECT id FROM users WHERE vtuno = ?", [vtuno], (err, userResult) => {
+db.query("SELECT id FROM users WHERE vtuno = ?", [vtuno], (err, userResult) => {
 
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: "User lookup failed" });
-        }
+if (err) {
+console.error(err);
+return res.status(500).json({ message: "User lookup failed" });
+}
 
-        if (userResult.length > 0) {
+if (userResult.length > 0) {
 
-            const userId = userResult[0].id;
-            checkScore(userId);
+const userId = userResult[0].id;
+checkScore(userId);
 
-        } else {
+} else {
 
-            db.query(
-                "INSERT INTO users (name, vtuno) VALUES (?, ?)",
-                [name, vtuno],
-                (err, result) => {
+db.query(
+"INSERT INTO users (name, vtuno) VALUES (?, ?)",
+[name, vtuno],
+(err, result) => {
 
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).json({ message: "User insert failed" });
-                    }
+if (err) {
+console.error(err);
+return res.status(500).json({ message: "User insert failed" });
+}
 
-                    const userId = result.insertId;
-                    checkScore(userId);
-                }
-            );
-        }
-    });
+const userId = result.insertId;
+checkScore(userId);
 
+});
+}
 
-    // Check if score already exists
-    function checkScore(userId) {
-
-        db.query(
-            "SELECT id FROM scores WHERE user_id = ?",
-            [userId],
-            (err, scoreResult) => {
-
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ message: "Score lookup failed" });
-                }
-
-                if (scoreResult.length > 0) {
-                    return res.json({ message: "Result already saved" });
-                }
-
-                insertScore(userId);
-            }
-        );
-    }
+});
 
 
-    // Insert score
-    function insertScore(userId) {
+// Check if score exists
+function checkScore(userId){
 
-        db.query(
-            `INSERT INTO scores (user_id, html_score, css_score, js_score)
-             VALUES (?, ?, ?, ?)`,
-            [userId, html, css, javascript],
-            (err) => {
+db.query(
+"SELECT id FROM scores WHERE user_id = ?",
+[userId],
+(err, scoreResult) => {
 
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ message: "Score insert failed" });
-                }
+if (err) {
+console.error(err);
+return res.status(500).json({ message: "Score lookup failed" });
+}
 
-                res.json({ success: true });
-            }
-        );
-    }
+if(scoreResult.length > 0){
+return res.json({ message: "Result already saved" });
+}
+
+insertScore(userId);
+
+});
+
+}
+
+
+// Insert Score
+function insertScore(userId){
+
+db.query(
+`INSERT INTO scores (user_id, html_score, css_score, js_score)
+VALUES (?, ?, ?, ?)`,
+[userId, html, css, javascript],
+(err) => {
+
+if (err) {
+console.error(err);
+return res.status(500).json({ message: "Score insert failed" });
+}
+
+res.json({ success: true });
+
+});
+
+}
 
 });
 
@@ -111,25 +111,45 @@ app.post("/submit-quiz", (req, res) => {
 // =============================
 app.get("/check-completion/:vtuno", (req, res) => {
 
-    const vtuno = req.params.vtuno;
+const vtuno = req.params.vtuno;
 
-    const query = `
-    SELECT scores.id
-    FROM users
-    LEFT JOIN scores ON users.id = scores.user_id
-    WHERE users.vtuno = ?
-    LIMIT 1
-    `;
+const query = `
+SELECT 
+scores.html_score,
+scores.css_score,
+scores.js_score
+FROM users
+JOIN scores ON users.id = scores.user_id
+WHERE users.vtuno = ?
+LIMIT 1
+`;
 
-    db.query(query, [vtuno], (err, result) => {
+db.query(query, [vtuno], (err, result) => {
 
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ completed: false });
-        }
+if (err) {
+console.error(err);
+return res.status(500).json({ completed: false });
+}
 
-        res.json({ completed: result.length > 0 });
-    });
+if(result.length === 0){
+return res.json({ completed:false });
+}
+
+const row = result[0];
+
+const total =
+(row.html_score || 0) +
+(row.css_score || 0) +
+(row.js_score || 0);
+
+// Completed only if pass
+if(total >= 15){
+res.json({ completed:true });
+}else{
+res.json({ completed:false });
+}
+
+});
 
 });
 
@@ -146,7 +166,9 @@ users.vtuno,
 scores.html_score,
 scores.css_score,
 scores.js_score,
-(IFNULL(scores.html_score,0) + IFNULL(scores.css_score,0) + IFNULL(scores.js_score,0)) AS total,
+(IFNULL(scores.html_score,0) +
+IFNULL(scores.css_score,0) +
+IFNULL(scores.js_score,0)) AS total,
 scores.created_at
 FROM users
 LEFT JOIN scores ON users.id = scores.user_id
@@ -166,59 +188,63 @@ res.json(results);
 
 });
 
+
 // =============================
 // Admin: Download Excel
 // =============================
 app.get("/admin/download-excel", async (req, res) => {
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Quiz Results");
+const workbook = new ExcelJS.Workbook();
+const worksheet = workbook.addWorksheet("Quiz Results");
 
-    worksheet.columns = [
-        { header: "Name", key: "name", width: 20 },
-        { header: "VTU Number", key: "vtuno", width: 20 },
-        { header: "HTML Score", key: "html_score", width: 15 },
-        { header: "CSS Score", key: "css_score", width: 15 },
-        { header: "JavaScript Score", key: "js_score", width: 20 },
-        { header: "Total Score", key: "total", width: 15 },
-        { header: "Date", key: "created_at", width: 25 }
-    ];
+worksheet.columns = [
+{ header: "Name", key: "name", width: 20 },
+{ header: "VTU Number", key: "vtuno", width: 20 },
+{ header: "HTML Score", key: "html_score", width: 15 },
+{ header: "CSS Score", key: "css_score", width: 15 },
+{ header: "JavaScript Score", key: "js_score", width: 20 },
+{ header: "Total Score", key: "total", width: 15 },
+{ header: "Date", key: "created_at", width: 25 }
+];
 
-    const query = `
-    SELECT 
-    users.name,
-    users.vtuno,
-    scores.html_score,
-    scores.css_score,
-    scores.js_score,
-    (IFNULL(scores.html_score,0) + IFNULL(scores.css_score,0) + IFNULL(scores.js_score,0)) AS total,
-    scores.created_at
-    FROM users
-    LEFT JOIN scores ON users.id = scores.user_id
-    `;
+const query = `
+SELECT 
+users.name,
+users.vtuno,
+scores.html_score,
+scores.css_score,
+scores.js_score,
+(IFNULL(scores.html_score,0) +
+IFNULL(scores.css_score,0) +
+IFNULL(scores.js_score,0)) AS total,
+scores.created_at
+FROM users
+LEFT JOIN scores ON users.id = scores.user_id
+`;
 
-    db.query(query, async (err, rows) => {
+db.query(query, async (err, rows) => {
 
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: "Excel export failed" });
-        }
+if (err) {
+console.error(err);
+return res.status(500).json({ message: "Excel export failed" });
+}
 
-        rows.forEach(row => worksheet.addRow(row));
+rows.forEach(row => worksheet.addRow(row));
 
-        res.setHeader(
-            "Content-Type",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        );
+res.setHeader(
+"Content-Type",
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+);
 
-        res.setHeader(
-            "Content-Disposition",
-            "attachment; filename=quiz_results.xlsx"
-        );
+res.setHeader(
+"Content-Disposition",
+"attachment; filename=quiz_results.xlsx"
+);
 
-        await workbook.xlsx.write(res);
-        res.end();
-    });
+await workbook.xlsx.write(res);
+res.end();
+
+});
 
 });
 
@@ -229,6 +255,5 @@ app.get("/admin/download-excel", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+console.log(`🚀 Server running on port ${PORT}`);
 });
-
